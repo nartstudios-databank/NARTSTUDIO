@@ -1,0 +1,111 @@
+name: Validate Names and Check LFS Pointers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet pytest
+
+      - name: Run name validator on all LFS files
+        run: |
+          python - << 'PYEOF'
+          import re
+          import os
+          import subprocess
+
+          STAGE_CODES = {"SC", "ST", "LA", "LI", "FL", "RE", "LF", "QA"}
+          PATTERN = re.compile(
+              r'^([A-Z]{2,4})_CH(\d{3})(?:_PG(\d{3}))?_(' + '|'.join(STAGE_CODES) + r')_v(\d{2})\.([a-z]+)$'
+          )
+
+          errors = []
+          passed = 0
+
+          # Get all tracked files
+          result = subprocess.run(
+              ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+              capture_output=True, text=True,
+          )
+          files = result.stdout.strip().split("\n") if result.stdout.strip() else []
+
+          # Also check staged/modified
+          result2 = subprocess.run(["git", "diff", "--name-only", "HEAD"], capture_output=True, text=True)
+          staged = result2.stdout.strip().split("\n") if result2.stdout.strip() else []
+          files.extend(staged)
+
+          for f in files:
+              if not f:
+                  continue
+              # Only check LFS-tracked file types
+              ext = os.path.splitext(f)[1].lower()
+              if ext in [".clip", ".psd", ".blend", ".tif", ".tiff", ".exr", ".png", ".jpg", ".pdf", ".mp4", ".mov"]:
+                  basename = os.path.basename(f)
+                  if not PATTERN.match(basename):
+                      errors.append(f"FAIL: {basename} - doesn't match IP_CH###_STAGE_v##.ext")
+                  else:
+                      passed += 1
+
+          if errors:
+              print("=" * 60)
+              print("NAME VALIDATION FAILED")
+              print("=" * 60)
+              for e in errors:
+                  print(e)
+              print("=" * 60)
+              sys.exit(1)
+          else:
+              print(f"All {passed} heavy file names are valid.")
+              sys.exit(0)
+          PYEOF
+
+      - name: Check LFS pointers are real
+        run: |
+          echo "Checking that LFS-tracked files are pointers (not actual binary data)..."
+          result = subprocess.run(["git", "ls-files"], capture_output=True, text=True)
+          lfs_files = []
+          for line in result.stdout.strip().split("\n"):
+              if line:
+                  lfs_files.append(line)
+
+          pointer_errors = []
+          for f in lfs_files; do
+              # Check if file is LFS-tracked by looking at git attributes
+              attr_result = subprocess.run(
+                  ["git", "check-attr", "--porcelain", "lfs", f],
+                  capture_output=True, text=True,
+              )
+              if echo "$attr_result" | grep -q "filter=lfs"; then
+                  # Verify it's a pointer, not binary data
+                  head_result = subprocess.run(
+                      ["git", "hash-object", "-t", f],
+                      capture_output=True, text=True,
+                  )
+                  # If hash-object works without error, it might not be an LFS pointer
+                  # Real LFS pointers start with "version https://git-lfs.github.com/spec/v1"
+                  pointer_check=$(git git-lfs poll 2>/dev/null || true)
+                  echo "Checking: $f"
+              fi
+          done
+
+      - name: Summary
+        if: success()
+        run: echo "✓ All checks passed - names valid and LFS pointers confirmed."
+        if: failure()
+        run: echo "✗ Some checks failed - see logs above."

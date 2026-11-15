@@ -1,0 +1,13 @@
+# CODEOWNERS - Nartstudio Studio Repo
+
+# Branch protection and approval hierarchy
+
+* @nartstudio/production-manager    # Reviews structure changes, folder creation, LFS quota changes
+* @nartstudio/creative-director     # FINAL/ sign-off on all PRs; chapter archival approval
+* @nartstudio/art-leads             # Stage-specific reviews (LINE/FLAT/RENDER teams)
+
+# Default merge rules
+
+- All PRs touching `08_QA/` require Creative Director approval
+- All PRs adding new IPs or division folders require Production Manager approval
+- Minor file additions (single stage update) may be merged with art-lead approval only

@@ -1,0 +1,34 @@
+# OS temporary & cache files
+*.blend1
+*.blend2
+*.blender*
+*_tmp.blend
+*.cliptmp
+*.cswap/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Clip Studio autosave and backup
+*.clip~
+ClipStudio*.tmp
+
+# Blender backup files (do NOT ignore .blend itself)
+.blend~
+
+# Cache and generated folders
+.cache/
+__pycache__/
+
+# Clip Studio and Blender preference folders
+CLIP_STUDIO*
+BLENDER_DATA*
+
+# Output render caches (project-specific)
+# These are generated per-chapter and should not be committed
+# *_exr_*
+# *.exr.cache
+
+# Git internal
+/.git/

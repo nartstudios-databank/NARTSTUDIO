@@ -1,0 +1,27 @@
+# Git LFS tracking for heavy art files
+# filter=lfs: Git LFS tracks large file contents; pointers stored in Git
+# diff=lfs/lfs: Git diff shows meaningful changes via LFS
+# merge=lfs: Git uses LFS for 3-way merges
+# -text: Prevents Git from auto-converting line endings in binary files
+# lockable: Marker that this file type requires git lfs lock/unlock for exclusive editing
+
+*.clip filter=lfs diff=lfs merge=lfs -text lockable
+*.psd filter=lfs diff=lfs merge=lfs -text lockable
+*.blend filter=lfs diff=lfs merge=lfs -text lockable
+*.tif filter=lfs diff=lfs merge=lfs -text
+*.tiff filter=lfs diff=lfs merge=lfs -text
+*.exr filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.mov filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.ttf filter=lfs diff=lfs merge=lfs -text
+*.woff2 filter=lfs diff=lfs merge=lfs -text
+
+# Text files - standard line endings
+*.txt text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.csv text eol=lf
